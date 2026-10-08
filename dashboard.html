@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal Finance Dashboard</title>
+<style>
+  :root{
+    --bg:#0e1117;--card:#171c26;--card2:#1e2431;--line:#2a3242;
+    --txt:#e8edf5;--dim:#8b96a8;
+    --green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--purple:#a78bfa;
+    --header-bg:#0e1117;--shadow:none;
+  }
+  [data-theme="light"]{
+    --bg:#f5f7fa;--card:#ffffff;--card2:#eef1f6;--line:#d1d5db;
+    --txt:#1f2937;--dim:#6b7280;
+    --green:#059669;--red:#dc2626;--yellow:#d97706;--blue:#2563eb;--purple:#7c3aed;
+    --header-bg:#ffffff;--shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;transition:background .3s,color .3s}
+  header{padding:22px 26px 0;background:var(--header-bg);box-shadow:var(--shadow)}
+  h1{margin:0 0 2px;font-size:22px;letter-spacing:-.3px;display:inline-block}
+  .meta{color:var(--dim);font-size:12px}
+  .theme-btn{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:18px;margin-left:12px;vertical-align:middle;transition:all .2s}
+  .theme-btn:hover{border-color:var(--blue);transform:scale(1.05)}
+  nav{display:flex;gap:4px;flex-wrap:wrap;padding:16px 26px 0;border-bottom:1px solid var(--line);background:var(--header-bg)}
+  nav button{background:none;border:0;color:var(--dim);padding:9px 14px;border-radius:8px 8px 0 0;cursor:pointer;font-size:13px;font-weight:600}
+  nav button:hover{color:var(--txt);background:var(--card)}
+  nav button.on{color:var(--txt);background:var(--card);box-shadow:inset 0 -2px 0 var(--blue)}
+  main{padding:22px 26px 60px;max-width:1280px}
+  section{display:none}section.on{display:block}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:700}
+  .big{font-size:24px;font-weight:700;letter-spacing:-.5px}
+  .pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--yellow)}
+  .sub{color:var(--dim);font-size:12px;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;background:var(--card2);z-index:2}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .scroll{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  .scroll table{background:var(--card)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:var(--card2);border:1px solid var(--line)}
+  .pill.canceled{color:var(--red);border-color:#5b2b2b}
+  .pill.could{color:var(--yellow);border-color:#5b4a1e}
+  select,input[type=text],input[type=number]{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--blue);transition:width .6s ease}
+  .bar>i.over{background:var(--red)}
+  .bar>i.near{background:var(--yellow)}
+  canvas{max-width:100%}
+  .legend{display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:12px;font-size:12px}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .dot{width:10px;height:10px;border-radius:3px;flex:none}
+  .verse{color:var(--purple);font-style:italic;font-size:12px;border-top:1px solid var(--line);padding-top:12px;margin-top:16px}
+  .empty{color:var(--dim);padding:30px;text-align:center}
+  .btn{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600}
+  .btn:hover{border-color:var(--blue)}
+  .tip-box{background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .tip-box h3{margin:0 0 8px;color:var(--yellow);font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+  .tip-box p{margin:0;font-size:13px;line-height:1.6}
+  .health-score{text-align:center;padding:20px}
+  .health-score .score{font-size:48px;font-weight:800;letter-spacing:-2px}
+  .health-score .label{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+  .health-breakdown{display:grid;gap:8px;margin-top:16px}
+  .health-item{display:flex;align-items:center;gap:10px;font-size:12px}
+  .health-item .bar{flex:1}
+  .health-item .val{width:36px;text-align:right;font-weight:600}
+  .streak{display:flex;align-items:center;gap:8px;font-size:13px}
+  .streak-fire{font-size:24px}
+  @keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .animate{animation:countUp .4s ease-out}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;background:var(--card2);border:1px solid var(--line);margin-left:8px}
+  @media(max-width:600px){
+    header{padding:16px 16px 0}
+    nav{padding:12px 16px 0}
+    main{padding:16px 16px 40px}
+    .grid{grid-template-columns:1fr 1fr}
+    .big{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Finance Dashboard</h1>
+  <button class="theme-btn" id="themeToggle" title="Toggle theme">&#9790;</button>
+  <div class="meta" id="meta"></div>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<script>
+// ============================================================
+//  SAMPLE DATA — Replace with your own to customize!
+//  Edit the DATA object below, then save and reopen this file.
+// ============================================================
+const DATA = {
+  "generated":"2026-10-08 10:00",
+  "title":"Personal Finance Dashboard",
+  "currency":"GHS ",
+  "bookkeeping_type":"personal",
+  "percentages":{"taxes":0,"tithe":10,"savings":20},
+  "budgets":{"Groceries":800,"Transportation":300,"Utilities":250,"Dining":200,"Entertainment":100,"Health":150,"Personal Care":80},
+  "months":["2026-08","2026-09","2026-10"],
+  "transactions":[
+    {"date":"2026-08-01","month":"2026-08","description":"Salary","amount":3500.0,"category":"Income","status":"","source":"sample.csv","id":"aug001"},
+    {"date":"2026-08-03","month":"2026-08","description":"Shoprite","amount":-180.50,"category":"Groceries","status":"","source":"sample.csv","id":"aug002"},
+    {"date":"2026-08-05","month":"2026-08","description":"MTN Airtime","amount":-50.0,"category":"Utilities","status":"","source":"sample.csv","id":"aug003"},
+    {"date":"2026-08-07","month":"2026-08","description":"Bolt Ride","amount":-35.0,"category":"Transportation","status":"","source":"sample.csv","id":"aug004"},
+    {"date":"2026-08-10","month":"2026-08","description":"KFC","amount":-45.0,"category":"Dining","status":"","source":"sample.csv","id":"aug005"},
+    {"date":"2026-08-12","month":"2026-08","description":"Momo Cash Out","amount":-200.0,"category":"Transfer","status":"","source":"sample.csv","id":"aug006"},
+    {"date":"2026-08-15","month":"2026-08","description":"Hubtel Food","amount":-60.0,"category":"Dining","status":"","source":"sample.csv","id":"aug007"},
+    {"date":"2026-08-18","month":"2026-08","description":"Melcom","amount":-120.0,"category":"Groceries","status":"","source":"sample.csv","id":"aug008"},
+    {"date":"2026-08-20","month":"2026-08","description":"ECG Prepaid","amount":-80.0,"category":"Utilities","status":"","source":"sample.csv","id":"aug009"},
+    {"date":"2026-08-22","month":"2026-08","description":"Waakye","amount":-25.0,"category":"Dining","status":"","source":"sample.csv","id":"aug010"},
+    {"date":"2026-08-25","month":"2026-08","description":"Netflix","amount":-40.0,"category":"Entertainment","status":"could cancel","source":"sample.csv","id":"aug011"},
+    {"date":"2026-08-28","month":"2026-08","description":"Pharmacy","amount":-65.0,"category":"Health","status":"","source":"sample.csv","id":"aug012"},
+    {"date":"2026-08-30","month":"2026-08","description":"Savings Transfer","amount":-700.0,"category":"Transfer","status":"","source":"sample.csv","id":"aug013"},
+    {"date":"2026-09-01","month":"2026-09","description":"Salary","amount":3500.0,"category":"Income","status":"","source":"sample.csv","id":"sep001"},
+    {"date":"2026-09-03","month":"2026-09","description":"Shoprite","amount":-220.0,"category":"Groceries","status":"","source":"sample.csv","id":"sep002"},
+    {"date":"2026-09-05","month":"2026-09","description":"MTN Airtime","amount":-50.0,"category":"Utilities","status":"","source":"sample.csv","id":"sep003"},
+    {"date":"2026-09-07","month":"2026-09","description":"Trotro","amount":-20.0,"category":"Transportation","status":"","source":"sample.csv","id":"sep004"},
+    {"date":"2026-09-10","month":"2026-09","description":"Pizza Inn","amount":-80.0,"category":"Dining","status":"","source":"sample.csv","id":"sep005"},
+    {"date":"2026-09-12","month":"2026-09","description":"Momo Cash Out","amount":-150.0,"category":"Transfer","status":"","source":"sample.csv","id":"sep006"},
+    {"date":"2026-09-15","month":"2026-09","description":"Jollof Republic","amount":-70.0,"category":"Dining","status":"","source":"sample.csv","id":"sep007"},
+    {"date":"2026-09-18","month":"2026-09","description":"Maxmart","amount":-95.0,"category":"Groceries","status":"","source":"sample.csv","id":"sep008"},
+    {"date":"2026-09-20","month":"2026-09","description":"ECG Prepaid","amount":-60.0,"category":"Utilities","status":"","source":"sample.csv","id":"sep009"},
+    {"date":"2026-09-22","month":"2026-09","description":"Kelewele","amount":-15.0,"category":"Dining","status":"","source":"sample.csv","id":"sep010"},
+    {"date":"2026-09-25","month":"2026-09","description":"Spotify","amount":-30.0,"category":"Entertainment","status":"canceled","source":"sample.csv","id":"sep011"},
+    {"date":"2026-09-28","month":"2026-09","description":"Barber","amount":-30.0,"category":"Personal Care","status":"","source":"sample.csv","id":"sep012"},
+    {"date":"2026-09-30","month":"2026-09","description":"Savings Transfer","amount":-700.0,"category":"Transfer","status":"","source":"sample.csv","id":"sep013"},
+    {"date":"2026-10-01","month":"2026-10","description":"Salary","amount":3500.0,"category":"Income","status":"","source":"sample.csv","id":"oct001"},
+    {"date":"2026-10-03","month":"2026-10","description":"Shoprite","amount":-150.0,"category":"Groceries","status":"","source":"sample.csv","id":"oct002"},
+    {"date":"2026-10-05","month":"2026-10","description":"MTN Airtime","amount":-50.0,"category":"Utilities","status":"","source":"sample.csv","id":"oct003"},
+    {"date":"2026-10-07","month":"2026-10","description":"Bolt Ride","amount":-40.0,"category":"Transportation","status":"","source":"sample.csv","id":"oct004"}
+  ],
+  "recurring":[],
+  "uncategorized":[],
+  "sources":["sample.csv"]
+};
+
+// ============================================================
+//  CONFIGURATION — Edit these to customize your dashboard
+// ============================================================
+const CONFIG = {
+  // Change currency symbol (e.g., "$", "€", "£", "GHS ")
+  currency: DATA.currency || '$',
+  // Your savings goal percentage
+  savingsPercent: (DATA.percentages && DATA.percentages.savings) || 20,
+  // Essential categories that can't be cut
+  essentialCategories: ['Groceries','Transportation','Housing','Utilities','Health'],
+  // Theme: 'dark' or 'light'
+  defaultTheme: 'dark'
+};
+
+// ============================================================
+//  MONEY TIPS — Rotating daily tips
+// ============================================================
+const MONEY_TIPS = [
+  "Pay yourself first — transfer savings before you see the money.",
+  "Track every cedi. Small leaks sink big ships.",
+  "The 50/30/20 rule: 50% needs, 30% wants, 20% savings.",
+  "An emergency fund should cover 3-6 months of expenses.",
+  "Compound interest is the 8th wonder of the world. Start early.",
+  "If you can't afford it twice, you can't afford it once.",
+  "Budget for fun money — deprivation doesn't stick.",
+  "Review subscriptions monthly. Cancel what you don't use.",
+  "Grocery list first, shopping second. Stick to the list.",
+  "Cook at home — it's cheaper and healthier.",
+  "Wait 24 hours before any purchase over GHS 100.",
+  "Your net worth is your scoreboard, not your salary.",
+  "Invest in skills — the best ROI is self-improvement.",
+  "Automation beats willpower. Set up auto-transfers.",
+  "Debt is a tool. Use it wisely, not desperately.",
+  "One income stream is risky. Build a second, even small.",
+  "Save 10% of any side income before you touch it.",
+  "The best investment you can make is in your own education.",
+  "Review your budget monthly. Life changes, budgets should too.",
+  "Wealth is what you don't see — spend less than you earn."
+];
+
+// ============================================================
+//  THEME TOGGLE
+// ============================================================
+function initTheme(){
+  const saved = localStorage.getItem('theme') || CONFIG.defaultTheme;
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeButton(saved);
+}
+function updateThemeButton(theme){
+  const btn = document.getElementById('themeToggle');
+  btn.innerHTML = theme === 'dark' ? '&#9790;' : '&#9728;';
+}
+document.getElementById('themeToggle').onclick = () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeButton(next);
+};
+
+// ============================================================
+//  UTILITY FUNCTIONS
+// ============================================================
+const CUR = CONFIG.currency;
+const money = n => (n<0?'-':'') + CUR + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+const money2 = n => (n<0?'-':'') + CUR + Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const PALETTE = ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#22d3ee','#f472b6','#a3e635','#fb923c','#38bdf8','#c084fc','#4ade80','#facc15','#94a3b8','#e879f9','#2dd4bf'];
+const catColor = {};
+function colorFor(c){ if(!catColor[c]){ catColor[c]=PALETTE[Object.keys(catColor).length%PALETTE.length]; } return catColor[c]; }
+const monthName = m => new Date(m+'-02').toLocaleString(undefined,{month:'long',year:'numeric'});
+const monthShort = m => new Date(m+'-02').toLocaleString(undefined,{month:'short'});
+
+// ============================================================
+//  DATA PROCESSING
+// ============================================================
+const TX = DATA.transactions;
+const MONTHS = DATA.months;
+const CATS = [...new Set(TX.map(t=>t.category))].sort();
+const incomeCats = new Set(['Income','Transfer']);
+
+const byMonth = {};
+MONTHS.forEach(m => byMonth[m] = {income:0, spend:0, cats:{}});
+TX.forEach(t => {
+  const b = byMonth[t.month]; if(!b) return;
+  if(t.amount > 0){ b.income += t.amount; }
+  else { b.spend += Math.abs(t.amount); b.cats[t.category]=(b.cats[t.category]||0)+Math.abs(t.amount); }
+});
+const totalIncome = MONTHS.reduce((s,m)=>s+byMonth[m].income,0);
+const totalSpend  = MONTHS.reduce((s,m)=>s+byMonth[m].spend,0);
+const avgSpend = MONTHS.length ? totalSpend/MONTHS.length : 0;
+const lastMonth = MONTHS[MONTHS.length-1];
+
+function catTotals(month){
+  const out = {};
+  TX.forEach(t => { if(t.amount>=0) return; if(month && t.month!==month) return;
+    out[t.category]=(out[t.category]||0)+Math.abs(t.amount); });
+  return out;
+}
+function monthTx(month){ return TX.filter(t=>t.month===month); }
+function cancelStats(month){
+  let canceled=0, could=0;
+  TX.forEach(t=>{ if(t.amount>=0) return; if(month && t.month!==month) return;
+    if(t.status==='canceled') canceled+=Math.abs(t.amount);
+    else if(t.status==='could cancel') could+=Math.abs(t.amount); });
+  return {canceled, could};
+}
+
+// ============================================================
+//  NAVIGATION & TABS
+// ============================================================
+const TABS = [
+  ['overview','Overview', viewOverview],
+  ['health','Health Score', viewHealthScore],
+  ['categories','Categories', viewCategories],
+  ['transfers','Transfers', viewTransfers],
+  ['transactions','Transactions', viewTransactions],
+  ['monthvm','Month vs Month', viewMonthVs],
+  ['budget','Budget', viewBudget],
+  ['insights','Insights', viewInsights],
+  ['supersavings','Super Savings', viewSuperSavings],
+  ['charts','Charts', viewCharts],
+  ['stocks','Stocks', viewStocks],
+  ['allocation','Allocation', viewAllocation],
+];
+let current = (location.hash || '').replace('#','') || 'overview';
+if(!TABS.some(t=>t[0]===current)) current = 'overview';
+function render(){
+  document.getElementById('nav').innerHTML = TABS.map(([id,label]) =>
+    `<button class="${id===current?'on':''}" data-tab="${id}">${label}</button>`).join('');
+  const tab = TABS.find(t=>t[0]===current) || TABS[0];
+  const main = document.getElementById('main');
+  main.innerHTML = `<section class="on" id="sec-${tab[0]}"></section>`;
+  tab[2](document.getElementById('sec-'+tab[0]));
+  document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+    current = b.dataset.tab; location.hash = current; render();
+  });
+}
+window.addEventListener('hashchange', () => {
+  const h = (location.hash||'').replace('#','');
+  if(TABS.some(t=>t[0]===h) && h !== current){ current = h; render(); }
+});
+
+function card(title, body, cls=''){ return `<div class="card ${cls}"><h3>${title}</h3>${body}</div>`; }
+const VERSE = `<div class="verse">"The plans of the diligent lead surely to abundance." — Proverbs 21:5</div>`;
+
+// Daily tip (changes based on date)
+function dailyTip(){
+  const day = Math.floor(Date.now() / 86400000);
+  return MONEY_TIPS[day % MONEY_TIPS.length];
+}
+
+// ============================================================
+//  OVERVIEW TAB
+// ============================================================
+function viewOverview(el){
+  const stats = MONTHS.map(m => ({m, ...byMonth[m], net: byMonth[m].income - byMonth[m].spend}));
+  const overall = cancelStats(null);
+  const tip = dailyTip();
+  const streak = JSON.parse(localStorage.getItem('savingsStreak') || '{"count":0,"lastMonth":""}');
+  const currentMonth = MONTHS[MONTHS.length-1];
+  let newStreak = streak.count;
+  if(streak.lastMonth !== currentMonth){
+    const savedThisMonth = byMonth[currentMonth].income * (DATA.percentages?.savings || 20) / 100;
+    if(savedThisMonth > 0) newStreak = streak.count + 1;
+  }
+  el.innerHTML = `
+  <div class="tip-box">
+    <h3>💡 Daily Money Tip</h3>
+    <p>${tip}</p>
+  </div>
+  <div class="grid">
+    ${card('Total income', `<div class="big pos animate">${money(totalIncome)}</div><div class="sub">${MONTHS.length} months</div>`)}
+    ${card('Total spend', `<div class="big neg animate">${money(totalSpend)}</div><div class="sub">avg ${money(avgSpend)}/mo</div>`)}
+    ${card('Net saved', `<div class="big ${totalIncome-totalSpend>=0?'pos':'neg'} animate">${money(totalIncome-totalSpend)}</div><div class="sub">income − spend</div>`)}
+    <div class="card">
+      <h3>Savings Streak</h3>
+      <div class="streak">
+        <span class="streak-fire">${newStreak > 0 ? '🔥' : '❄️'}</span>
+        <div>
+          <div class="big ${newStreak>0?'pos':''}">${newStreak} month${newStreak!==1?'s':''}</div>
+          <div class="sub">${newStreak>0?'Keep it going!':'Start saving this month!'}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll" style="margin-top:16px">
+    <table><thead><tr><th>Month</th><th class="num">Income</th><th class="num">Spend</th><th class="num">Net</th><th class="num">Canceled</th><th class="num">Could cancel</th></tr></thead>
+    <tbody>${stats.map(s=>{const c=cancelStats(s.m);return `<tr><td>${monthName(s.m)}</td>
+      <td class="num pos">${money2(s.income)}</td><td class="num neg">${money2(s.spend)}</td>
+      <td class="num ${s.net>=0?'pos':'neg'}">${money2(s.net)}</td>
+      <td class="num">${money2(c.canceled)}</td><td class="num warn">${money2(c.could)}</td></tr>`;}).join('')}</tbody></table>
+  </div>${VERSE}`;
+}
+
+// ============================================================
+//  FINANCIAL HEALTH SCORE TAB
+// ============================================================
+function viewHealthScore(el){
+  const net = totalIncome - totalSpend;
+  const savingsRate = totalIncome > 0 ? net / totalIncome : 0;
+  const budgetCats = Object.keys(DATA.budgets || {});
+  const overBudget = budgetCats.filter(c => {
+    const avg = MONTHS.reduce((s,m)=>s+(byMonth[m].cats[c]||0),0) / MONTHS.length;
+    return avg > DATA.budgets[c];
+  }).length;
+  const totalBudgetCats = budgetCats.length;
+  const budgetScore = totalBudgetCats > 0 ? (totalBudgetCats - overBudget) / totalBudgetCats : 1;
+  const savingsScore = Math.min(savingsRate / 0.20, 1);
+  const hasCancel = cancelStats(null).canceled > 0;
+  const cancelScore = hasCancel ? 1 : 0;
+  const allTxCount = TX.length;
+  const uncategorized = (DATA.uncategorized || []).length;
+  const trackingScore = allTxCount > 0 ? (allTxCount - uncategorized) / allTxCount : 1;
+  const raw = (savingsScore * 30) + (budgetScore * 25) + (cancelScore * 15) + (trackingScore * 20) + 10;
+  const score = Math.round(Math.min(Math.max(raw, 0), 100));
+  let grade, gradeColor;
+  if(score >= 90){ grade='A+'; gradeColor='var(--green)'; }
+  else if(score >= 80){ grade='A'; gradeColor='var(--green)'; }
+  else if(score >= 70){ grade='B'; gradeColor='var(--blue)'; }
+  else if(score >= 60){ grade='C'; gradeColor='var(--yellow)'; }
+  else if(score >= 50){ grade='D'; gradeColor='var(--yellow)'; }
+  else { grade='F'; gradeColor='var(--red)'; }
+  const breakdown = [
+    {name:'Savings Rate', pct: Math.round(savingsScore*100), weight:30, detail: `${(savingsRate*100).toFixed(1)}% saved (target 20%)`},
+    {name:'Budget Adherence', pct: Math.round(budgetScore*100), weight:25, detail: `${totalBudgetCats-overBudget}/${totalBudgetCats} categories on track`},
+    {name:'Subscription Control', pct: cancelScore*100, weight:15, detail: hasCancel?'You cancelled something!':'No cancellations yet'},
+    {name:'Transaction Tracking', pct: Math.round(trackingScore*100), weight:20, detail: `${allTxCount-uncategorized}/${allTxCount} transactions categorized`},
+    {name:'Consistency', pct: Math.min(MONTHS.length*10,100), weight:10, detail: `${MONTHS.length} months of data`},
+  ];
+  el.innerHTML = `
+  <div class="card health-score">
+    <div class="label">Financial Health Score</div>
+    <div class="score" style="color:${gradeColor}">${score}</div>
+    <div class="big" style="color:${gradeColor}">${grade}</div>
+    <div class="sub">Based on savings, budgeting, and tracking habits</div>
+    <div class="health-breakdown">
+      ${breakdown.map(b=>`
+        <div class="health-item">
+          <span style="width:140px">${b.name}</span>
+          <div class="bar"><i class="${b.pct>80?'':(b.pct>50?'near':'over')}" style="width:${b.pct}%"></i></div>
+          <span class="val">${b.pct}%</span>
+        </div>
+        <div class="sub" style="margin:-4px 0 4px 150px">${b.detail}</div>
+      `).join('')}
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>How to improve your score</h3>
+    <ul style="line-height:1.9;padding-left:20px;margin:0">
+      <li><strong>Savings Rate:</strong> Aim to save at least 20% of income. Automate transfers.</li>
+      <li><strong>Budget Adherence:</strong> Review budgets monthly. Adjust if consistently over.</li>
+      <li><strong>Subscription Control:</strong> Mark recurring charges as "could cancel" in Transactions.</li>
+      <li><strong>Transaction Tracking:</strong> Categorize every transaction. Add missing categories.</li>
+      <li><strong>Consistency:</strong> Keep logging data every month — the score rewards streaks.</li>
+    </ul>
+  </div>${VERSE}`;
+}
+
+// ============================================================
+//  CATEGORIES TAB
+// ============================================================
+function viewCategories(el){
+  const totals = catTotals(null);
+  const entries = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const sum = entries.reduce((s,e)=>s+e[1],0) || 1;
+  el.innerHTML = `
+  <div class="grid" style="grid-template-columns:minmax(260px,340px) 1fr">
+    <div class="card"><h3>Spend by category</h3><canvas id="donut" width="300" height="300"></canvas>
+      <div class="sub" style="text-align:center">${money(sum)} total</div></div>
+    <div class="card"><h3>Ranking</h3>
+      <table><thead><tr><th>Category</th><th class="num">Total</th><th class="num">Share</th></tr></thead><tbody>
+      ${entries.map(([c,v])=>`<tr><td><span class="dot" style="background:${colorFor(c)};display:inline-block;margin-right:8px"></span>${c}</td>
+        <td class="num">${money2(v)}</td><td class="num">${(v/sum*100).toFixed(1)}%</td></tr>`).join('')}
+      </tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Month over month by category</h3>
+    <div class="scroll" style="max-height:400px;border:0"><table><thead><tr><th>Category</th>
+      ${MONTHS.map(m=>`<th class="num">${monthShort(m)}</th>`).join('')}</tr></thead><tbody>
+      ${entries.map(([c])=>`<tr><td><span class="dot" style="background:${colorFor(c)};display:inline-block;margin-right:8px"></span>${c}</td>
+        ${MONTHS.map(m=>{const v=(byMonth[m].cats[c]||0); return `<td class="num">${v?money(v):'–'}</td>`;}).join('')}</tr>`).join('')}
+    </tbody></table></div>${VERSE}`;
+  drawDonut(entries);
+}
+function drawDonut(entries){
+  const cv = document.getElementById('donut'); if(!cv) return;
+  const ctx = cv.getContext('2d'); const cx=150, cy=150, r=110, ir=64;
+  const total = entries.reduce((s,e)=>s+e[1],0) || 1;
+  let a = -Math.PI/2;
+  ctx.clearRect(0,0,300,300);
+  entries.forEach(([c,v])=>{
+    const sweep = v/total*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,a,a+sweep); ctx.closePath();
+    ctx.fillStyle = colorFor(c); ctx.fill();
+    a += sweep;
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2); ctx.fillStyle='#171c26'; ctx.fill();
+  ctx.fillStyle='#8b96a8'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('spend', cx, cy+4);
+}
+
+// ============================================================
+//  TRANSFERS TAB
+// ============================================================
+function viewTransfers(el){
+  const p = DATA.percentages || {};
+  const rows = MONTHS.map(m => {
+    const b = byMonth[m];
+    return {m, taxes: b.income*(p.taxes||0)/100, tithe: b.income*(p.tithe||0)/100, savings: b.income*(p.savings||0)/100};
+  });
+  const t = rows.reduce((a,r)=>({taxes:a.taxes+r.taxes,tithe:a.tithe+r.tithe,savings:a.savings+r.savings}),{taxes:0,tithe:0,savings:0});
+  el.innerHTML = `
+  <div class="grid">
+    ${card(`Taxes (${p.taxes||0}%)`, `<div class="big">${money(t.taxes)}</div><div class="sub">set aside all-time</div>`)}
+    ${card(`Tithe / giving (${p.tithe||0}%)`, `<div class="big">${money(t.tithe)}</div><div class="sub">set aside all-time</div>`)}
+    ${card(`Savings (${p.savings||0}%)`, `<div class="big pos">${money(t.savings)}</div><div class="sub">target all-time</div>`)}
+  </div>
+  <div class="scroll" style="margin-top:16px"><table><thead><tr><th>Month</th><th class="num">Income</th>
+    <th class="num">Taxes</th><th class="num">Tithe</th><th class="num">Savings</th><th>Done</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${monthName(r.m)}</td><td class="num">${money2(byMonth[r.m].income)}</td>
+      <td class="num">${money2(r.taxes)}</td><td class="num">${money2(r.tithe)}</td><td class="num">${money2(r.savings)}</td>
+      <td><input type="checkbox" class="tick" data-m="${r.m}"></td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="sub" style="margin-top:10px">Tick a month once the money has actually moved. Percentages live in <code>finance_preferences.json</code> — set one to 0 to drop it.</div>${VERSE}`;
+  const done = JSON.parse(localStorage.getItem('transfersDone')||'{}');
+  el.querySelectorAll('.tick').forEach(cb => { cb.checked = !!done[cb.dataset.m];
+    cb.onchange = () => { done[cb.dataset.m] = cb.checked; localStorage.setItem('transfersDone', JSON.stringify(done)); }; });
+}
+
+// ============================================================
+//  TRANSACTIONS TAB
+// ============================================================
+function viewTransactions(el){
+  const statusOf = {};
+  el.innerHTML = `
+  <div class="row">
+    <select id="fmonth"><option value="">All months</option>${MONTHS.map(m=>`<option value="${m}">${monthName(m)}</option>`).join('')}</select>
+    <select id="fcat"><option value="">All categories</option>${CATS.map(c=>`<option>${c}</option>`).join('')}</select>
+    <input type="text" id="fq" placeholder="search description…">
+    <span class="sub" id="count"></span>
+  </div>
+  <div class="scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th>
+    <th class="num">Amount</th><th>Status</th></tr></thead><tbody id="txbody"></tbody></table></div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn" id="export">Refresh &amp; Export overrides</button>
+    <span class="sub">Saves a CSV next to your data. Load it in a new session to keep your marks.</span>
+  </div>${VERSE}`;
+  const saved = JSON.parse(localStorage.getItem('txStatus')||'{}');
+  Object.assign(statusOf, saved);
+  const body = el.querySelector('#txbody');
+  function paint(){
+    const m = el.querySelector('#fmonth').value;
+    const c = el.querySelector('#fcat').value;
+    const q = el.querySelector('#fq').value.toLowerCase();
+    const rows = TX.filter(t => (!m||t.month===m) && (!c||t.category===c) && (!q||t.description.toLowerCase().includes(q)));
+    el.querySelector('#count').textContent = `${rows.length} transactions · ${money2(rows.reduce((s,t)=>s+t.amount,0))} net`;
+    body.innerHTML = rows.map(t => {
+      const st = statusOf[t.id] || t.status || '';
+      const cls = st==='canceled'?'canceled':(st==='could cancel'?'could':'');
+      return `<tr><td>${t.date}</td><td>${t.description}</td>
+        <td><span class="dot" style="background:${colorFor(t.category)};display:inline-block;margin-right:6px"></span>${t.category}</td>
+        <td class="num ${t.amount>0?'pos':'neg'}">${money2(t.amount)}</td>
+        <td><select class="st" data-id="${t.id}">
+          <option value=""></option>
+          <option value="could cancel" ${cls==='could'?'selected':''}>could cancel</option>
+          <option value="canceled" ${cls==='canceled'?'selected':''}>canceled</option>
+        </select></td></tr>`;
+    }).join('') || `<tr><td colspan="5" class="empty">No transactions match.</td></tr>`;
+    body.querySelectorAll('.st').forEach(sel => sel.onchange = () => {
+      if(sel.value) statusOf[sel.dataset.id]=sel.value; else delete statusOf[sel.dataset.id];
+      localStorage.setItem('txStatus', JSON.stringify(statusOf));
+    });
+  }
+  ['fmonth','fcat','fq'].forEach(id => el.querySelector('#'+id).oninput = paint);
+  el.querySelector('#export').onclick = () => {
+    const lines = ['id,date,description,amount,status'];
+    TX.forEach(t => { const st = statusOf[t.id]; if(st) lines.push(`${t.id},${t.date},"${t.description.replace(/"/g,'""')}",${t.amount},${st}`); });
+    const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'finance_overrides.csv'; a.click();
+  };
+  paint();
+}
+
+// ============================================================
+//  MONTH VS MONTH TAB
+// ============================================================
+function viewMonthVs(el){
+  const max = Math.max(...MONTHS.map(m=>Math.max(byMonth[m].income, byMonth[m].spend)),1);
+  const cats = Object.entries(catTotals(null)).sort((a,b)=>b[1]-a[1]).map(e=>e[0]).slice(0,8);
+  el.innerHTML = `
+  <div class="card"><h3>Income vs spend by month</h3>
+    ${MONTHS.map(m=>{const b=byMonth[m];return `
+      <div style="margin:10px 0"><div class="sub">${monthName(m)} — in ${money(b.income)} · out ${money(b.spend)} · net <span class="${b.income-b.spend>=0?'pos':'neg'}">${money(b.income-b.spend)}</span></div>
+      <div class="bar"><i style="width:${b.income/max*100}%;background:var(--green)"></i></div>
+      <div class="bar" style="margin-top:3px"><i style="width:${b.spend/max*100}%;background:var(--red)"></i></div></div>`;}).join('')}
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Category trend (top 8)</h3>
+    <div class="scroll" style="max-height:420px;border:0"><table><thead><tr><th>Category</th>${MONTHS.map(m=>`<th class="num">${monthShort(m)}</th>`).join('')}<th class="num">Trend</th></tr></thead><tbody>
+    ${cats.map(c=>{const vals=MONTHS.map(m=>byMonth[m].cats[c]||0); const last=vals[vals.length-1], first=vals[0];
+      const dir = last>first*1.15?'▲ up':(last<first*0.85?'▼ down':'— flat');
+      return `<tr><td><span class="dot" style="background:${colorFor(c)};display:inline-block;margin-right:8px"></span>${c}</td>
+        ${vals.map(v=>`<td class="num">${v?money(v):'–'}</td>`).join('')}<td class="num sub">${dir}</td></tr>`;}).join('')}
+    </tbody></table></div>${VERSE}`;
+}
+
+// ============================================================
+//  BUDGET TAB
+// ============================================================
+function viewBudget(el){
+  const budgets = DATA.budgets || {};
+  const cats = Object.keys(catTotals(null)).sort();
+  el.innerHTML = `
+  <div class="sub" style="margin-bottom:12px">Set a target per category. Edit <code>budgets</code> in <code>finance_preferences.json</code> and rebuild to persist changes.</div>
+  <div class="scroll"><table><thead><tr><th>Category</th><th class="num">Budget</th><th class="num">Avg/mo</th><th>Months</th><th class="num">Verdict</th></tr></thead><tbody>
+  ${cats.map(c=>{
+    const vals = MONTHS.map(m=>byMonth[m].cats[c]||0);
+    const avg = vals.reduce((s,v)=>s+v,0)/MONTHS.length;
+    const bud = budgets[c];
+    const pct = bud ? avg/bud : 0;
+    const cls = !bud ? '' : (pct>1?'over':(pct>0.85?'near':''));
+    const verdict = !bud ? '<span class="sub">no budget set</span>' : (pct>1?`<span class="neg">over by ${money(avg-bud)}</span>`:(pct>0.85?`<span class="warn">close — watch it</span>`:`<span class="pos">on track</span>`));
+    return `<tr><td><span class="dot" style="background:${colorFor(c)};display:inline-block;margin-right:8px"></span>${c}</td>
+      <td class="num">${bud?money2(bud):'–'}</td><td class="num">${money2(avg)}</td>
+      <td><div class="bar" style="min-width:120px"><i class="${cls}" style="width:${Math.min(pct*100,100)}%"></i></div>
+        <span class="sub">${vals.map((v,i)=>`${monthShort(MONTHS[i])}:${v?money(v):'0'}`).join(' · ')}</span></td>
+      <td class="num">${verdict}</td></tr>`;}).join('')}
+  </tbody></table></div>${VERSE}`;
+}
+
+// ============================================================
+//  INSIGHTS TAB
+// ============================================================
+function viewInsights(el){
+  const notes = [];
+  const net = totalIncome - totalSpend;
+  notes.push(`Across ${MONTHS.length} months you took in ${money(totalIncome)} and spent ${money(totalSpend)} — a net of ${money(net)} (${(net/(totalIncome||1)*100).toFixed(1)}% of income kept).`);
+  const cats = Object.entries(catTotals(null)).sort((a,b)=>b[1]-a[1]);
+  if(cats.length) notes.push(`Largest category: ${cats[0][0]} at ${money(cats[0][1])} (${(cats[0][1]/totalSpend*100).toFixed(1)}% of spend).`);
+  if(cats.length>1) notes.push(`Next: ${cats.slice(1,4).map(c=>`${c[0]} ${money(c[1])}`).join(', ')}.`);
+  const movers = cats.slice(0,10).map(([c])=>{const v=MONTHS.map(m=>byMonth[m].cats[c]||0);
+    const first=v[0], last=v[v.length-1]; return {c, delta:last-first, pct:first?((last-first)/first*100):0};})
+    .filter(x=>Math.abs(x.delta)>0 && MONTHS.length>1).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+  movers.slice(0,3).forEach(x => notes.push(`${x.c} moved ${x.delta>0?'up':'down'} ${money(Math.abs(x.delta))} (${x.pct>0?'+':''}${x.pct.toFixed(0)}%) between ${monthShort(MONTHS[0])} and ${monthShort(lastMonth)}.`));
+  const c = cancelStats(null);
+  if(c.canceled||c.could) notes.push(`Cancellation review: ${money(c.canceled)} already cancelled, ${money(c.could)} flagged could-cancel — that is ${money((c.canceled+c.could)*12)} annualized if you finish the job.`);
+  if(DATA.recurring && DATA.recurring.length) notes.push(`${DATA.recurring.length} recurring merchants detected, led by ${DATA.recurring.slice(0,3).map(r=>`${r.description} (${money(r.avg)}/mo)`).join(', ')}.`);
+  const sav = (DATA.percentages.savings||0)/100;
+  if(sav) notes.push(`At ${DATA.percentages.savings}% savings target you should have moved ${money(totalIncome*sav)} so far.`);
+  el.innerHTML = `<div class="card"><h3>What the numbers say</h3><ul style="line-height:1.9;padding-left:20px">
+    ${notes.map(n=>`<li>${n}</li>`).join('')}</ul>${VERSE}</div>
+    <div class="card" style="margin-top:16px"><h3>Recurring charges</h3>
+      <table><thead><tr><th>Merchant</th><th>Category</th><th class="num">Avg/mo</th><th class="num">Annual</th><th class="num">Months</th></tr></thead><tbody>
+      ${(DATA.recurring||[]).slice(0,25).map(r=>`<tr><td>${r.description}</td><td>${r.category}</td>
+        <td class="num">${money2(r.avg)}</td><td class="num warn">${money2(r.annual)}</td><td class="num">${r.count}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">No repeating merchants found.</td></tr>'}
+      </tbody></table></div>`;
+}
+
+// ============================================================
+//  SUPER SAVINGS TAB
+// ============================================================
+function viewSuperSavings(el){
+  const NECESSARY = new Set(['Groceries','Transportation','Housing','Utilities','Health','Income','Transfer','Fees']);
+  const target = lastMonth;
+  const totals = {};
+  monthTx(target).forEach(t => { if(t.amount>=0) return; totals[t.category]=(totals[t.category]||0)+Math.abs(t.amount); });
+  const rows = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const cuttable = rows.filter(([c])=>!NECESSARY.has(c));
+  const keep = rows.filter(([c])=>NECESSARY.has(c));
+  const monthly = cuttable.reduce((s,r)=>s+r[1],0);
+  const keepSum = keep.reduce((s,r)=>s+r[1],0);
+  el.innerHTML = `
+  <div class="grid">
+    ${card('Cuttable this month', `<div class="big warn">${money(monthly)}</div><div class="sub">${monthName(target)} non-essential spend</div>`)}
+    ${card('If held all year', `<div class="big pos">${money(monthly*12)}</div><div class="sub">annualized</div>`)}
+    ${card('Essential floor', `<div class="big">${money(keepSum)}</div><div class="sub">housing, food, transport, health</div>`)}
+  </div>
+  <div class="card" style="margin-top:16px"><h3>What you could cut — ${monthName(target)}</h3>
+    <table><thead><tr><th>Category</th><th class="num">Spent</th><th class="num">Annualized</th><th>Call</th></tr></thead><tbody>
+    ${rows.map(([c,v])=>`<tr><td><span class="dot" style="background:${colorFor(c)};display:inline-block;margin-right:8px"></span>${c}</td>
+      <td class="num">${money2(v)}</td><td class="num">${money2(v*12)}</td>
+      <td>${NECESSARY.has(c)?'<span class="pos">keep — essential</span>':'<span class="warn">review — could cut</span>'}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="sub" style="margin-top:12px">Essential categories: ${[...NECESSARY].filter(c=>c!=='Income'&&c!=='Transfer').join(', ')}. This tab is generated live — ask Alfred to change the essential list or add a category.</div>
+  </div>${VERSE}`;
+}
+
+// ============================================================
+//  CHARTS TAB
+// ============================================================
+function viewCharts(el){
+  const allTx = TX.filter(t=>t.amount<0);
+  const dailySpend = {};
+  allTx.forEach(t => { dailySpend[t.date] = (dailySpend[t.date]||0) + Math.abs(t.amount); });
+  const dates = Object.keys(dailySpend).sort();
+  const maxDaily = Math.max(...Object.values(dailySpend), 1);
+  const cats = Object.entries(catTotals(null)).sort((a,b)=>b[1]-a[1]).map(e=>e[0]).slice(0,6);
+  const stackedData = MONTHS.map(m => {
+    const monthCats = {};
+    cats.forEach(c => { monthCats[c] = byMonth[m].cats[c]||0; });
+    return {month: m, cats: monthCats};
+  });
+  const totalInc = totalIncome || 1;
+  const savPct = (DATA.percentages.savings||0)/100;
+  const tithePct = (DATA.percentages.tithe||0)/100;
+  const taxPct = (DATA.percentages.taxes||0)/100;
+  const saved = totalInc * savPct;
+  const tithe = totalInc * tithePct;
+  const taxes = totalInc * taxPct;
+  const spent = totalSpend;
+  const remaining = totalInc - saved - tithe - taxes - spent;
+  const heatmapDays = [];
+  const today = new Date();
+  for(let i=29; i>=0; i--){
+    const d = new Date(today);
+    d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    heatmapDays.push({date: key, amount: dailySpend[key]||0});
+  }
+  el.innerHTML = `
+  <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(350px,1fr))">
+    <div class="card"><h3>Daily Spending Trend (Line)</h3>
+      <canvas id="lineChart" width="400" height="200"></canvas>
+      <div class="sub">${dates.length} days with spending</div>
+    </div>
+    <div class="card"><h3>Income Allocation (Pie)</h3>
+      <canvas id="pieChart" width="300" height="300"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--green)"></span>Spent: ${money(spent)}</span>
+        <span><span class="dot" style="background:var(--blue)"></span>Savings: ${money(saved)}</span>
+        <span><span class="dot" style="background:var(--yellow)"></span>Tithe: ${money(tithe)}</span>
+        <span><span class="dot" style="background:var(--purple)"></span>Taxes: ${money(taxes)}</span>
+        <span><span class="dot" style="background:var(--red)"></span>Remaining: ${money(remaining)}</span>
+      </div>
+    </div>
+    <div class="card"><h3>Category Breakdown by Month (Stacked)</h3>
+      <canvas id="stackedChart" width="500" height="250"></canvas>
+      <div class="legend">
+        ${cats.map(c=>`<span><span class="dot" style="background:${colorFor(c)}"></span>${c}</span>`).join('')}
+      </div>
+    </div>
+    <div class="card"><h3>Daily Spending Heatmap (Last 30 Days)</h3>
+      <div id="heatmap" style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px"></div>
+      <div class="sub" style="margin-top:8px">Darker = more spent</div>
+    </div>
+  </div>${VERSE}`;
+  drawLineChart(dates, dailySpend, maxDaily);
+  drawPieChart(spent, saved, tithe, taxes, remaining);
+  drawStackedBar(stackedData, cats);
+  drawHeatmap(heatmapDays, maxDaily);
+}
+
+function drawLineChart(dates, dailySpend, maxDaily){
+  const cv = document.getElementById('lineChart'); if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const w = cv.width, h = cv.height, pad = 30;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle = '#2a3242'; ctx.lineWidth = 1;
+  for(let i=0;i<=4;i++){
+    const y = pad + (h-2*pad)*i/4;
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
+  }
+  if(dates.length > 1){
+    ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.beginPath();
+    dates.forEach((d,i) => {
+      const x = pad + (w-2*pad)*i/(dates.length-1);
+      const y = h-pad - (h-2*pad)*dailySpend[d]/maxDaily;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = '#60a5fa';
+    dates.forEach((d,i) => {
+      const x = pad + (w-2*pad)*i/(dates.length-1);
+      const y = h-pad - (h-2*pad)*dailySpend[d]/maxDaily;
+      ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    });
+  }
+  ctx.fillStyle = '#8b96a8'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+  if(dates.length>0){
+    ctx.fillText(dates[0].slice(5), pad, h-5);
+    ctx.fillText(dates[dates.length-1].slice(5), w-pad, h-5);
+  }
+  ctx.textAlign = 'right';
+  ctx.fillText(money(maxDaily), pad-5, pad+10);
+  ctx.fillText('0', pad-5, h-pad+5);
+}
+
+function drawPieChart(spent, saved, tithe, taxes, remaining){
+  const cv = document.getElementById('pieChart'); if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const cx=150, cy=150, r=110;
+  const total = spent+saved+tithe+taxes+Math.max(remaining,0) || 1;
+  const slices = [
+    {label:'Spent', value:spent, color:'#34d399'},
+    {label:'Savings', value:saved, color:'#60a5fa'},
+    {label:'Tithe', value:tithe, color:'#fbbf24'},
+    {label:'Taxes', value:taxes, color:'#a78bfa'},
+    {label:'Remaining', value:Math.max(remaining,0), color:'#f87171'},
+  ].filter(s=>s.value>0);
+  let a = -Math.PI/2;
+  slices.forEach(s => {
+    const sweep = s.value/total*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,a,a+sweep); ctx.closePath();
+    ctx.fillStyle = s.color; ctx.fill();
+    a += sweep;
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,50,0,Math.PI*2); ctx.fillStyle='#171c26'; ctx.fill();
+  ctx.fillStyle='#8b96a8'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Total', cx, cy-5);
+  ctx.fillText(money(total), cx, cy+12);
+}
+
+function drawStackedBar(stackedData, cats){
+  const cv = document.getElementById('stackedChart'); if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const w = cv.width, h = cv.height, pad = 40;
+  ctx.clearRect(0,0,w,h);
+  const maxVal = Math.max(...stackedData.map(d => cats.reduce((s,c) => s + d.cats[c], 0)), 1);
+  const barWidth = (w-2*pad)/stackedData.length * 0.6;
+  const gap = (w-2*pad)/stackedData.length;
+  stackedData.forEach((d, i) => {
+    const x = pad + gap*i + (gap-barWidth)/2;
+    let y = h-pad;
+    cats.forEach(c => {
+      const val = d.cats[c];
+      if(val>0){
+        const barH = (h-2*pad)*val/maxVal;
+        y -= barH;
+        ctx.fillStyle = colorFor(c);
+        ctx.fillRect(x, y, barWidth, barH);
+      }
+    });
+    ctx.fillStyle = '#8b96a8'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(monthShort(d.month), x+barWidth/2, h-pad+15);
+  });
+  ctx.strokeStyle = '#2a3242'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.stroke();
+  ctx.textAlign = 'right';
+  ctx.fillText(money(maxVal), pad-5, pad+10);
+  ctx.fillText('0', pad-5, h-pad+5);
+}
+
+function drawHeatmap(heatmapDays, maxDaily){
+  const el = document.getElementById('heatmap'); if(!el) return;
+  el.innerHTML = heatmapDays.map(d => {
+    const intensity = maxDaily>0 ? d.amount/maxDaily : 0;
+    const alpha = 0.15 + intensity*0.85;
+    const bg = intensity>0 ? `rgba(96,165,250,${alpha})` : 'rgba(42,50,66,0.3)';
+    const color = intensity>0.5 ? '#fff' : '#8b96a8';
+    return `<div style="aspect-ratio:1;border-radius:3px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:9px;color:${color}" title="${d.date}: ${money(d.amount)}">${d.amount>0?money(d.amount):''}</div>`;
+  }).join('');
+}
+
+// ============================================================
+//  STOCKS TAB (GSE Sample Data)
+// ============================================================
+function viewStocks(el){
+  const gseData = {
+    "date":"2026-10-06","source":"Sample data — replace with live GSE feed",
+    "gse_ci":14219.44,"gse_ci_change":"+0.72%","gse_fsi":7538.58,"gse_fsi_change":"-0.64%","ytd_return":"+62.13%",
+    "stocks":[
+      {"symbol":"GCB","name":"GCB Bank","price":39.76,"change":-0.84,"change_pct":-2.07,"volume":8700,"mcap":10500000000,"pe":8.2,"div_yield":3.0,"sector":"Banking"},
+      {"symbol":"SCB","name":"StanChart Ghana","price":69.87,"change":-0.02,"change_pct":-0.03,"volume":2100,"mcap":9400000000,"pe":9.5,"div_yield":3.7,"sector":"Banking"},
+      {"symbol":"MTNGH","name":"MTN Ghana","price":6.56,"change":0.06,"change_pct":0.92,"volume":188300,"mcap":86800000000,"pe":12.1,"div_yield":4.2,"sector":"Telecom"},
+      {"symbol":"GOIL","name":"GOIL","price":5.95,"change":0.07,"change_pct":1.19,"volume":12400,"mcap":2300000000,"pe":10.3,"div_yield":1.3,"sector":"Oil & Gas"},
+      {"symbol":"TOTAL","name":"TotalEnergies","price":38.50,"change":3.18,"change_pct":9.00,"volume":821,"mcap":4300000000,"pe":11.0,"div_yield":1.9,"sector":"Oil & Gas"},
+      {"symbol":"CPC","name":"Cocoa Processing","price":0.30,"change":0,"change_pct":0,"volume":0,"mcap":61100000,"pe":null,"div_yield":0,"sector":"Agriculture"},
+      {"symbol":"BOPP","name":"Benso Oil Palm","price":75.00,"change":0,"change_pct":0,"volume":1100,"mcap":2600000000,"pe":15.2,"div_yield":0.7,"sector":"Agriculture"},
+      {"symbol":"CMLT","name":"Camelot Ghana","price":0.14,"change":0,"change_pct":0,"volume":0,"mcap":1000000,"pe":null,"div_yield":0,"sector":"Manufacturing"},
+      {"symbol":"ETI","name":"Ecobank Transnational","price":1.67,"change":0.01,"change_pct":0.60,"volume":341500,"mcap":41100000000,"pe":6.8,"div_yield":0,"sector":"Banking"},
+      {"symbol":"SIC","name":"SIC Insurance","price":5.09,"change":0.45,"change_pct":9.70,"volume":9500,"mcap":99600000,"pe":7.5,"div_yield":0,"sector":"Insurance"},
+      {"symbol":"CAL","name":"CalBank","price":0.74,"change":0.01,"change_pct":1.37,"volume":86300,"mcap":46400000,"pe":5.9,"div_yield":0,"sector":"Banking"},
+      {"symbol":"EGH","name":"Ecobank Ghana","price":39.00,"change":0,"change_pct":0,"volume":921,"mcap":12600000000,"pe":7.8,"div_yield":0,"sector":"Banking"},
+      {"symbol":"FML","name":"Fan Milk","price":14.00,"change":0,"change_pct":0,"volume":1600,"mcap":1600000000,"pe":18.5,"div_yield":0,"sector":"Consumer"},
+      {"symbol":"GGBL","name":"Guinness Ghana","price":10.70,"change":0,"change_pct":0,"volume":197,"mcap":3300000000,"pe":14.2,"div_yield":0,"sector":"Consumer"},
+      {"symbol":"KASA","name":"Kasapreko","price":1.87,"change":0.06,"change_pct":3.31,"volume":214100,"mcap":null,"pe":null,"div_yield":0,"sector":"Consumer"},
+      {"symbol":"MAC","name":"Mega African Capital","price":5.20,"change":0,"change_pct":0,"volume":1,"mcap":52000000,"pe":null,"div_yield":0,"sector":"Investment"},
+      {"symbol":"RBGH","name":"Republic Bank","price":4.00,"change":0,"change_pct":0,"volume":4600,"mcap":3400000000,"pe":6.5,"div_yield":0,"sector":"Banking"},
+      {"symbol":"SOGEGH","name":"Societe Generale","price":5.10,"change":0,"change_pct":0,"volume":573,"mcap":3600000000,"pe":7.2,"div_yield":0,"sector":"Banking"},
+      {"symbol":"TLW","name":"Tullow Oil","price":13.11,"change":0,"change_pct":0,"volume":40,"mcap":19900000000,"pe":null,"div_yield":0,"sector":"Oil & Gas"},
+      {"symbol":"UNIL","name":"Unilever Ghana","price":40.00,"change":0,"change_pct":0,"volume":1100,"mcap":2500000000,"pe":16.8,"div_yield":0,"sector":"Consumer"},
+      {"symbol":"ZEN","name":"ZEN Petroleum","price":9.01,"change":0,"change_pct":0,"volume":111,"mcap":5800000000,"pe":null,"div_yield":0,"sector":"Oil & Gas"},
+      {"symbol":"HORDS","name":"Hords Ltd","price":0.82,"change":0.04,"change_pct":5.13,"volume":21800,"mcap":94000000,"pe":null,"div_yield":0,"sector":"Manufacturing"},
+      {"symbol":"IIL","name":"Intravenous Infusions","price":0.55,"change":0.02,"change_pct":3.77,"volume":20400,"mcap":20600000,"pe":null,"div_yield":0,"sector":"Healthcare"},
+      {"symbol":"DIGICUT","name":"Digicut","price":0.52,"change":-0.02,"change_pct":-3.70,"volume":15900,"mcap":62000000,"pe":null,"div_yield":0,"sector":"Manufacturing"},
+      {"symbol":"DASPHARMA","name":"Dannex Ayrton","price":1.02,"change":0,"change_pct":0,"volume":27500,"mcap":86000000,"pe":null,"div_yield":0,"sector":"Healthcare"},
+      {"symbol":"ALW","name":"Aluworks","price":0.10,"change":0,"change_pct":0,"volume":0,"mcap":24000000,"pe":null,"div_yield":0,"sector":"Manufacturing"},
+      {"symbol":"ALGH","name":"Atlantic Lithium","price":5.30,"change":0,"change_pct":0,"volume":1500,"mcap":138000000,"pe":null,"div_yield":0,"sector":"Mining"},
+      {"symbol":"ASG","name":"Asante Gold","price":8.89,"change":0,"change_pct":0,"volume":6,"mcap":8000000000,"pe":null,"div_yield":0,"sector":"Mining"},
+      {"symbol":"AA","name":"AngloGold Ashanti","price":37.00,"change":0,"change_pct":0,"volume":0,"mcap":18700000000,"pe":null,"div_yield":0,"sector":"Mining"},
+      {"symbol":"AB","name":"Access Bank","price":20.67,"change":0,"change_pct":0,"volume":34,"mcap":3600000000,"pe":null,"div_yield":0,"sector":"Banking"},
+      {"symbol":"AD","name":"Agricultural Dev Bank","price":5.30,"change":0,"change_pct":0,"volume":0,"mcap":8800000000,"pe":null,"div_yield":0,"sector":"Banking"},
+      {"symbol":"AGA","name":"AngloGold Ashanti","price":37.00,"change":0,"change_pct":0,"volume":0,"mcap":18700000000,"pe":null,"div_yield":0,"sector":"Mining"},
+      {"symbol":"GLD","name":"NewGold ETF","price":462.38,"change":0,"change_pct":0,"volume":8,"mcap":1600000000,"pe":null,"div_yield":0,"sector":"ETF"},
+      {"symbol":"MMH","name":"Meridian-Marshalls","price":0.12,"change":0,"change_pct":0,"volume":9,"mcap":12000000,"pe":null,"div_yield":0,"sector":"Manufacturing"},
+      {"symbol":"SCBPREF","name":"StanChart Pref","price":0.99,"change":0,"change_pct":0,"volume":0,"mcap":17000000,"pe":null,"div_yield":0,"sector":"Banking"},
+      {"symbol":"PBC","name":"Produce Buying","price":0.02,"change":0,"change_pct":0,"volume":0,"mcap":10000000,"pe":null,"div_yield":0,"sector":"Agriculture"},
+      {"symbol":"SAMBA","name":"Samba Foods","price":0.55,"change":0,"change_pct":0,"volume":0,"mcap":3000000,"pe":null,"div_yield":0,"sector":"Consumer"}
+    ]
+  };
+  const gainers = gseData.stocks.filter(s=>s.change_pct>0).sort((a,b)=>b.change_pct-a.change_pct).slice(0,5);
+  const losers = gseData.stocks.filter(s=>s.change_pct<0).sort((a,b)=>a.change_pct-b.change_pct).slice(0,5);
+  const dividendStocks = gseData.stocks.filter(s=>s.div_yield>0).sort((a,b)=>b.div_yield-a.div_yield);
+  const mostActive = gseData.stocks.filter(s=>s.volume>0).sort((a,b)=>b.volume-a.volume).slice(0,5);
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>GSE Market Overview — ${gseData.date}</h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      <div><div class="sub">GSE Composite Index</div><div class="big">${gseData.gse_ci.toLocaleString()}</div><div class="sub pos">${gseData.gse_ci_change}</div></div>
+      <div><div class="sub">Financial Stocks Index</div><div class="big">${gseData.gse_fsi.toLocaleString()}</div><div class="sub neg">${gseData.gse_fsi_change}</div></div>
+      <div><div class="sub">YTD Return</div><div class="big pos">${gseData.ytd_return}</div><div class="sub">Jan 1 — Oct 6</div></div>
+      <div><div class="sub">Total Market Cap</div><div class="big">GHS 209B</div><div class="sub">39 listed</div></div>
+    </div>
+    <div class="sub" style="margin-top:8px">Source: ${gseData.source} · Trading hours: Mon–Fri 10:00–15:00 GMT</div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:16px">
+    <div class="card"><h3>Top Gainers</h3>
+      <table><thead><tr><th>Symbol</th><th class="num">Price</th><th class="num">Change</th></tr></thead><tbody>
+      ${gainers.map(s=>`<tr><td><strong>${s.symbol}</strong></td><td class="num">${money2(s.price)}</td><td class="num pos">+${s.change_pct.toFixed(2)}%</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="card"><h3>Top Losers</h3>
+      <table><thead><tr><th>Symbol</th><th class="num">Price</th><th class="num">Change</th></tr></thead><tbody>
+      ${losers.map(s=>`<tr><td><strong>${s.symbol}</strong></td><td class="num">${money2(s.price)}</td><td class="num neg">${s.change_pct.toFixed(2)}%</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="card"><h3>Most Active</h3>
+      <table><thead><tr><th>Symbol</th><th class="num">Volume</th><th class="num">Price</th></tr></thead><tbody>
+      ${mostActive.map(s=>`<tr><td><strong>${s.symbol}</strong></td><td class="num">${s.volume.toLocaleString()}</td><td class="num">${money2(s.price)}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px"><h3>Dividend Stocks (Yield > 0%)</h3>
+    <div class="scroll" style="max-height:250px;border:0"><table><thead><tr><th>Symbol</th><th>Name</th><th class="num">Price</th><th class="num">Div Yield</th><th class="num">P/E</th><th class="num">Market Cap</th></tr></thead><tbody>
+    ${dividendStocks.map(s=>`<tr><td><strong>${s.symbol}</strong></td><td>${s.name}</td><td class="num">${money2(s.price)}</td><td class="num pos">${s.div_yield}%</td><td class="num">${s.pe||'–'}</td><td class="num">${s.mcap?money(s.mcap):'–'}</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>
+  <div class="card"><h3>All GSE Listings</h3>
+    <div class="row" style="margin-bottom:10px">
+      <select id="sectorFilter"><option value="">All Sectors</option>${[...new Set(gseData.stocks.map(s=>s.sector))].sort().map(s=>`<option>${s}</option>`).join('')}</select>
+      <input type="text" id="stockSearch" placeholder="Search symbol or name...">
+    </div>
+    <div class="scroll" style="max-height:400px;border:0"><table><thead><tr><th>Symbol</th><th>Name</th><th>Sector</th><th class="num">Price</th><th class="num">Change</th><th class="num">P/E</th><th class="num">Div Yield</th><th class="num">Market Cap</th></tr></thead><tbody id="allStocksBody"></tbody></table></div>
+  </div>${VERSE}`;
+  function renderStocks(){
+    const q = document.getElementById('stockSearch').value.toLowerCase();
+    const sector = document.getElementById('sectorFilter').value;
+    const filtered = gseData.stocks.filter(s=>(!sector||s.sector===sector)&&(!q||s.symbol.toLowerCase().includes(q)||s.name.toLowerCase().includes(q)));
+    document.getElementById('allStocksBody').innerHTML = filtered.map(s=>`<tr>
+      <td><strong>${s.symbol}</strong></td><td>${s.name}</td><td><span class="pill">${s.sector}</span></td>
+      <td class="num">${money2(s.price)}</td>
+      <td class="num ${s.change_pct>0?'pos':(s.change_pct<0?'neg':'')}">${s.change_pct>0?'+':''}${s.change_pct.toFixed(2)}%</td>
+      <td class="num">${s.pe||'–'}</td>
+      <td class="num ${s.div_yield>0?'pos':''}">${s.div_yield>0?s.div_yield+'%':'–'}</td>
+      <td class="num">${s.mcap?money(s.mcap):'–'}</td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty">No stocks match</td></tr>';
+  }
+  document.getElementById('stockSearch').oninput = renderStocks;
+  document.getElementById('sectorFilter').onchange = renderStocks;
+  renderStocks();
+}
+
+// ============================================================
+//  ALLOCATION TAB
+// ============================================================
+function viewAllocation(el){
+  const income = totalIncome || 0;
+  const wealthWeekly = 10;
+  const wealthMonthly = wealthWeekly * 4;
+  const survivalPct = 0.55;
+  const discretionaryPct = 0.125;
+  const wantsPct = 0.10;
+  const survival = income * survivalPct;
+  const discretionary = income * discretionaryPct;
+  const wantsMax = income * wantsPct;
+  const wealth = Math.min(wealthMonthly, income - survival);
+  const wants = Math.max(0, Math.min(wantsMax, income - survival - wealth - discretionary));
+  const totalAllocated = survival + wealth + discretionary + wants;
+  const shortfall = income - totalAllocated;
+  const projects = JSON.parse(localStorage.getItem('projects') || '[]');
+  const essentialClothing = JSON.parse(localStorage.getItem('essentialClothing') || '[]');
+  const optionalClothing = JSON.parse(localStorage.getItem('optionalClothing') || '[]');
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>Cash-Flow Allocation — ${monthName(lastMonth)}</h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+      <div><div class="sub">Actual Income</div><div class="big">${money(income)}</div><div class="sub">from ${TX.length} transactions</div></div>
+      <div><div class="sub">Survival (55%)</div><div class="big" style="color:var(--green)">${money(survival)}</div><div class="sub">food, essentials, living costs</div></div>
+      <div><div class="sub">Wealth Contribution</div><div class="big" style="color:var(--blue)">${money(wealth)}</div><div class="sub">GHS ${wealthWeekly}/week protected</div></div>
+      <div><div class="sub">Discretionary (12.5%)</div><div class="big" style="color:var(--yellow)">${money(discretionary)}</div><div class="sub">non-essential spending</div></div>
+      <div><div class="sub">Wants/Projects (max 10%)</div><div class="big" style="color:var(--purple)">${money(wants)}</div><div class="sub">last priority</div></div>
+      <div><div class="sub">Shortfall</div><div class="big ${shortfall<0?'neg':'pos'}">${money(shortfall)}</div><div class="sub">${shortfall<0?'Income cannot cover targets':'All targets covered'}</div></div>
+    </div>
+    ${shortfall<0?`<div class="card" style="margin-top:12px;border-color:var(--red)"><h3 style="color:var(--red)">⚠ Shortfall Warning</h3><div>Your actual income of ${money(income)} cannot cover the proposed allocation of ${money(totalAllocated)}. You need ${money(Math.abs(shortfall))} more, or you must reduce targets.</div></div>`:''}
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:16px">
+    <div class="card"><h3>Allocation Breakdown</h3>
+      <div class="bar" style="margin:8px 0"><i style="width:${survival/income*100}%;background:var(--green)"></i></div>
+      <div class="sub">Survival: ${money(survival)} (${(survival/income*100).toFixed(1)}%)</div>
+      <div class="bar" style="margin:8px 0"><i style="width:${wealth/income*100}%;background:var(--blue)"></i></div>
+      <div class="sub">Wealth: ${money(wealth)} (${(wealth/income*100).toFixed(1)}%)</div>
+      <div class="bar" style="margin:8px 0"><i style="width:${discretionary/income*100}%;background:var(--yellow)"></i></div>
+      <div class="sub">Discretionary: ${money(discretionary)} (${(discretionary/income*100).toFixed(1)}%)</div>
+      <div class="bar" style="margin:8px 0"><i style="width:${wants/income*100}%;background:var(--purple)"></i></div>
+      <div class="sub">Wants/Projects: ${money(wants)} (${(wants/income*100).toFixed(1)}%)</div>
+    </div>
+    <div class="card"><h3>Rules</h3>
+      <table><thead><tr><th>Priority</th><th>Category</th><th>Range</th><th>Amount</th></tr></thead><tbody>
+        <tr><td>1</td><td>Survival</td><td>50-60%</td><td class="num">${money(survival)}</td></tr>
+        <tr><td>2</td><td>Wealth</td><td>GHS 10/wk</td><td class="num">${money(wealth)}</td></tr>
+        <tr><td>3</td><td>Discretionary</td><td>10-15%</td><td class="num">${money(discretionary)}</td></tr>
+        <tr><td>4</td><td>Wants/Projects</td><td>max 10%</td><td class="num">${money(wants)}</td></tr>
+      </tbody></table>
+      <div class="sub" style="margin-top:8px">Wants/Projects = 0% if wealth contribution not funded</div>
+    </div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:16px">
+    <div class="card"><h3>Projects (from notebook)</h3>
+      <div class="scroll" style="max-height:200px;border:0"><table><thead><tr><th>Project</th><th class="num">Est. Cost</th><th class="num">Target</th><th>Status</th></tr></thead><tbody>
+      ${projects.map(p=>`<tr><td>${p.name}</td><td class="num">${money(p.cost)}</td><td class="num">${money(p.target)}</td><td><span class="pill ${p.funded?'':'could'}">${p.funded?'Funded':'Pending'}</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">No projects recorded</td></tr>'}
+      </tbody></table></div>
+      <div class="row" style="margin-top:10px">
+        <input type="text" id="projName" placeholder="Project name" style="width:150px">
+        <input type="number" id="projCost" placeholder="Est. cost" step="0.01" style="width:100px">
+        <input type="number" id="projTarget" placeholder="Target amount" step="0.01" style="width:100px">
+        <button class="btn" id="addProject">Add Project</button>
+      </div>
+    </div>
+    <div class="card"><h3>Clothing Tracker</h3>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div><h3 style="color:var(--green)">Essential</h3>
+          <div class="scroll" style="max-height:150px;border:0"><table><thead><tr><th>Item</th><th class="num">Cost</th></tr></thead><tbody>
+          ${essentialClothing.map(c=>`<tr><td>${c.name}</td><td class="num">${money(c.cost)}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">None</td></tr>'}
+          </tbody></table></div>
+          <div class="row" style="margin-top:8px">
+            <input type="text" id="essName" placeholder="Item" style="width:100px">
+            <input type="number" id="essCost" placeholder="Cost" step="0.01" style="width:80px">
+            <button class="btn" id="addEss">Add</button>
+          </div>
+        </div>
+        <div><h3 style="color:var(--yellow)">Optional</h3>
+          <div class="scroll" style="max-height:150px;border:0"><table><thead><tr><th>Item</th><th class="num">Cost</th></tr></thead><tbody>
+          ${optionalClothing.map(c=>`<tr><td>${c.name}</td><td class="num">${money(c.cost)}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">None</td></tr>'}
+          </tbody></table></div>
+          <div class="row" style="margin-top:8px">
+            <input type="text" id="optName" placeholder="Item" style="width:100px">
+            <input type="number" id="optCost" placeholder="Cost" step="0.01" style="width:80px">
+            <button class="btn" id="addOpt">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="border-color:var(--red)"><h3 style="color:var(--red)">⚠ Approval Required</h3>
+    <div>Before any transfer, purchase, investment, trade, or wallet action, Alfred will show you the exact asset, amount, currency, recipient, fees, and timing. <strong>No approval means no action.</strong></div>
+  </div>${VERSE}`;
+  document.getElementById('addProject').onclick = () => {
+    const name = document.getElementById('projName').value;
+    const cost = parseFloat(document.getElementById('projCost').value) || 0;
+    const target = parseFloat(document.getElementById('projTarget').value) || 0;
+    if(!name) return;
+    const projects = JSON.parse(localStorage.getItem('projects'));
+    projects.push({name, cost, target, funded:false});
+    localStorage.setItem('projects', JSON.stringify(projects));
+    render();
+  };
+  document.getElementById('addEss').onclick = () => {
+    const name = document.getElementById('essName').value;
+    const cost = parseFloat(document.getElementById('essCost').value) || 0;
+    if(!name) return;
+    const items = JSON.parse(localStorage.getItem('essentialClothing'));
+    items.push({name, cost});
+    localStorage.setItem('essentialClothing', JSON.stringify(items));
+    render();
+  };
+  document.getElementById('addOpt').onclick = () => {
+    const name = document.getElementById('optName').value;
+    const cost = parseFloat(document.getElementById('optCost').value) || 0;
+    if(!name) return;
+    const items = JSON.parse(localStorage.getItem('optionalClothing'));
+    items.push({name, cost});
+    localStorage.setItem('optionalClothing', JSON.stringify(items));
+    render();
+  };
+}
+
+// ============================================================
+//  BOOT
+// ============================================================
+initTheme();
+document.getElementById('title').textContent = DATA.title || 'Finance Dashboard';
+document.getElementById('meta').textContent =
+  `${DATA.bookkeeping_type} · ${DATA.months.length} months · ${TX.length} transactions · ${(DATA.sources||[]).join(', ')} · built ${DATA.generated}`;
+if(DATA.uncategorized && DATA.uncategorized.length){
+  document.getElementById('meta').textContent += ` · ${DATA.uncategorized.length} uncategorized`;
+}
+render();
+</script>
+</body>
+</html>
