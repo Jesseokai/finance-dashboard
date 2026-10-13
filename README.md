@@ -1,5 +1,7 @@
 # Personal Finance Dashboard
 
+![Demo](dashboard_demo.gif)
+
 A single-file, offline-first personal finance dashboard built for Ghanaian users. No server, no database, no tracking — just open the HTML file in your browser.
 
 ## Features
