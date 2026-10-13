@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support the Finance Dashboard</title>
+<style>
+  :root{--bg:#0e1117;--card:#171c26;--card2:#1e2431;--line:#2a3242;--txt:#e8edf5;--dim:#8b96a8;
+        --green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--purple:#a78bfa}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .container{max-width:600px;width:100%}
+  h1{margin:0 0 8px;font-size:28px;letter-spacing:-.5px}
+  .sub{color:var(--dim);margin-bottom:30px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px;transition:border-color .2s}
+  .card:hover{border-color:var(--blue)}
+  .card h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:10px}
+  .card .desc{color:var(--dim);font-size:13px;margin-bottom:14px}
+  .address{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-family:monospace;font-size:12px;word-break:break-all;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .address span{flex:1}
+  .copy-btn{background:var(--line);border:0;color:var(--txt);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;white-space:nowrap}
+  .copy-btn:hover{background:var(--blue)}
+  .copied{color:var(--green)!important}
+  .icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  .btc .icon{background:#f7931a22;color:#f7931a}
+  .eth .icon{background:#627eea22;color:#627eea}
+  .usdt .icon{background:#26a17b22;color:#26a17b}
+  .sol .icon{background:#9945ff22;color:#9945ff}
+  .footer{text-align:center;color:var(--dim);font-size:12px;margin-top:20px}
+  .footer a{color:var(--blue);text-decoration:none}
+  .footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Support This Project</h1>
+  <p class="sub">This dashboard is free and open source. If you find it useful, consider supporting its development.</p>
+
+  <div class="card btc">
+    <div class="icon">₿</div>
+    <h3>Bitcoin (BTC)</h3>
+    <p class="desc">Send BTC to this address</p>
+    <div class="address">
+      <span id="btc-address">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</span>
+      <button class="copy-btn" onclick="copyAddress('btc-address', this)">Copy</button>
+    </div>
+  </div>
+
+  <div class="card eth">
+    <div class="icon">Ξ</div>
+    <h3>Ethereum (ETH)</h3>
+    <p class="desc">Send ETH or ERC-20 tokens to this address</p>
+    <div class="address">
+      <span id="eth-address">0x71C7656EC7ab88b098defB751B7401B5f6d8976F</span>
+      <button class="copy-btn" onclick="copyAddress('eth-address', this)">Copy</button>
+    </div>
+  </div>
+
+  <div class="card usdt">
+    <div class="icon">₮</div>
+    <h3>USDT (TRC-20)</h3>
+    <p class="desc">Send USDT on TRC-20 network to this address</p>
+    <div class="address">
+      <span id="usdt-address">TJyfVqVGBn5z8fM7rLzGZpP9mQwN3xKvYs</span>
+      <button class="copy-btn" onclick="copyAddress('usdt-address', this)">Copy</button>
+    </div>
+  </div>
+
+  <div class="card sol">
+    <div class="icon">◎</div>
+    <h3>Solana (SOL)</h3>
+    <p class="desc">Send SOL to this address</p>
+    <div class="address">
+      <span id="sol-address">7Np41oeYqPefeNQEHSv1UDhYrehxin3NStELsSKCT4K2</span>
+      <button class="copy-btn" onclick="copyAddress('sol-address', this)">Copy</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Built with ❤️ in Ghana 🇬🇭</p>
+    <p><a href="https://github.com/Jesseokai/finance-dashboard">Back to Dashboard</a></p>
+  </div>
+</div>
+
+<script>
+function copyAddress(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
